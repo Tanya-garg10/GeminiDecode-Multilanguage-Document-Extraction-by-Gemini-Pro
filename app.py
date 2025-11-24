@@ -3,20 +3,20 @@ import streamlit as st
 import os
 import google.generativeai as genai
 from PIL import Image
-import tempfile
+import io
 
 # Load environment variables
 load_dotenv()
 genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 
 # Function to get response from Gemini Pro Vision API
-def get_gemini_response(file_path, prompt):
+def get_gemini_response(image_bytes, prompt):
     model = genai.GenerativeModel('gemini-pro-vision')
-    # Pass file path as input
-    response = model.generate_content([file_path, prompt])
+    # Pass image bytes as inline data
+    response = model.generate_content([image_bytes, prompt])
     return response.text
 
-# Streamlit app
+# Streamlit app configuration
 st.set_page_config(page_title="GeminiDecode: Multilanguage Document Extraction by Gemini Pro")
 
 st.header("GeminiDecode: Multilanguage Document Extraction by Gemini Pro")
@@ -29,6 +29,7 @@ st.markdown(
     unsafe_allow_html=True
 )
 
+# File uploader for documents
 uploaded_file = st.file_uploader("Choose an image of the document:", type=["jpg", "jpeg", "png"])
 
 if uploaded_file is not None:
@@ -41,12 +42,8 @@ if uploaded_file is not None:
     """
 
     if st.button("Tell me about the document"):
-        # Save uploaded file temporarily
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmp_file:
-            tmp_file.write(uploaded_file.getbuffer())
-            tmp_file_path = tmp_file.name
-
-        # Call Gemini API with file path
-        response = get_gemini_response(tmp_file_path, input_prompt)
+        # Convert uploaded file to bytes
+        image_bytes = uploaded_file.getvalue()
+        response = get_gemini_response(image_bytes, input_prompt)
         st.subheader("The response is:")
         st.write(response)
