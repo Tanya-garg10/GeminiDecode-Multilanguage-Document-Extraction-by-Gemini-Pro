@@ -9,10 +9,13 @@ load_dotenv()
 genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 
 # Function to get response from Google Gemini Pro Vision API
-def get_gemini_response(input_image, prompt):
+def get_gemini_response(uploaded_file, prompt):
+    # Convert uploaded file to bytes
+    file_bytes = uploaded_file.read()
+    
     model = genai.GenerativeModel('gemini-pro-vision')
-    # Pass the uploaded file directly along with the prompt
-    response = model.generate_content([input_image, prompt])
+    # Pass bytes as input along with prompt
+    response = model.generate_content([file_bytes, prompt])
     return response.text
 
 # Streamlit app configuration
@@ -41,7 +44,6 @@ if uploaded_file is not None:
     """
 
     if st.button("Tell me about the document"):
-        # Call Gemini Pro API directly with the uploaded file
         response = get_gemini_response(uploaded_file, input_prompt)
         st.subheader("The response is:")
         st.write(response)
